@@ -1,0 +1,34 @@
+# CI/CD pipeline — build, test, push image, deploy.
+# Week 1 goal: a push to main redeploys the API to Container Apps automatically.
+# Fill in the TODO steps as you build each week.
+
+name: ci-cd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release
+
+  # TODO (week 1+): build and push container images to Azure Container Registry.
+  # TODO (week 1+): deploy to Azure Container Apps (azure/login + az containerapp update).

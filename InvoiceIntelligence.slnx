@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/functions/" />
+  <Folder Name="/functions/ingest_trigger/">
+    <Project Path="functions/ingest_trigger/InvoiceIntelligence.Functions.IngestTrigger.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/InvoiceIntelligence.Api/InvoiceIntelligence.Api.csproj" />
+    <Project Path="src/InvoiceIntelligence.AppHost/InvoiceIntelligence.AppHost.csproj" />
+    <Project Path="src/InvoiceIntelligence.Core/InvoiceIntelligence.Core.csproj" />
+    <Project Path="src/InvoiceIntelligence.Infrastructure/InvoiceIntelligence.Infrastructure.csproj" />
+    <Project Path="src/InvoiceIntelligence.Worker/InvoiceIntelligence.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/InvoiceIntelligence.Tests/InvoiceIntelligence.Tests.csproj" />
+  </Folder>
+</Solution>
