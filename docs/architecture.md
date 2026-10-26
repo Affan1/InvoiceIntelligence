@@ -66,6 +66,64 @@ flowchart LR
 | Ingest function | `functions/ingest_trigger` | Blob/Event Grid → Document Intelligence → Service Bus | Functions, Event Grid, Document Intelligence |
 | AppHost | `src/InvoiceIntelligence.AppHost` | .NET Aspire orchestration for local dev | — |
 
+## Project structure (folder guide)
+
+The solution is one app split into projects that each have a single job. The table above is the
+precise map; this is the plain-language version.
+
+```
+InvoiceIntelligence/
+  InvoiceIntelligence.slnx        the "solution": a list of all the projects below
+  src/
+    InvoiceIntelligence.Core/            the RULES + the contracts (interfaces)
+    InvoiceIntelligence.Infrastructure/  the code that talks to databases & Azure
+    InvoiceIntelligence.Api/             the web app (receives HTTP requests)
+    InvoiceIntelligence.Worker/          a background processor
+    InvoiceIntelligence.AppHost/         runs everything together locally (Aspire)
+  functions/
+    ingest_trigger/               an Azure Function (runs when an event fires)
+  infra/                          Azure resource setup as code (Bicep) — NOT C#
+  tests/                          automated tests
+  docs/                           documentation
+  .github/workflows/              CI/CD (build + deploy)
+```
+
+**One job each:**
+
+- **Core** — *what* the app does: domain rules and the **contracts** (e.g. an `IInvoiceStorage`
+  interface that says *something must be able to save a PDF* — but not how). Pure C#, depends on
+  nothing.
+- **Infrastructure** — *how*: the real code that implements those contracts against the outside
+  world (Blob SDK, later EF/SQL, Redis, vector store).
+- **Api / Worker / Function** — *who starts the work*: a user's HTTP request (Api), a Service Bus
+  message (Worker), or an event (Function).
+- **AppHost / infra / tests / docs / .github** — everything *around* running, deploying, and
+  documenting it.
+
+**Two name clashes worth calling out:**
+
+- `infra/` (Bicep that tells **Azure** what resources to create) is **not** the
+  `Infrastructure` project (C# code that **connects to** those resources). Same word, different
+  thing.
+- `Worker` runs continuously waiting for Service Bus messages; `functions/ingest_trigger` is
+  asleep until an event triggers it, then runs briefly. Both are "background," but one is
+  long-lived and one is serverless.
+
+**Why split it up** — the upload flow shows the payoff:
+
+```
+User → Api (endpoint) → asks for IInvoiceStorage (a contract in Core)
+                             ↓ at runtime the real implementation runs
+                        Infrastructure (Blob code) → Azurite / Azure Blob
+```
+
+The Api never talks to Blob directly — it asks for "whatever implements `IInvoiceStorage`". The
+contract lives in Core, the implementation in Infrastructure. That makes storage **swappable**
+(Azurite locally, Azure in the cloud, no change to Core/Api), **testable** (hand the Api a fake in
+tests), and **clear** (storage bug → Infrastructure; endpoint bug → Api; business rule → Core).
+This is the **Clean Architecture** dependency rule in practice: dependencies point inward, toward
+Core, and the domain depends on nothing.
+
 ## Data flow
 
 **Ingestion.** A tenant uploads a PDF through the API, which writes it to Blob Storage under a
