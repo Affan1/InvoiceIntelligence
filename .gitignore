@@ -275,3 +275,8 @@ appsettings.*.local.json
 coverage*.json
 coverage*.xml
 coverage*.info
+
+# Azurite local emulator data
+azurite_workspace/
+__azurite_db_*.json
+__blobstorage__/
